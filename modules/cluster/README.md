@@ -61,11 +61,15 @@ an instance that isn't `RUNNING` — exactly the preemption case — so a health
 check would add a port opened to Google's probe ranges for no additional
 coverage.
 
-**`OPPORTUNISTIC` is the only legal `update_policy.type` here, not a
-preference.** Stateful MIGs reject `PROACTIVE`. To roll a template change
-(a new machine type, a new `k3s_version`), use `gcloud compute
-instance-groups managed update-instances`; `rolling-action replace` triggers
-a proactive rollout and this group will refuse it.
+**A template change rolls the node by itself.** `PROACTIVE` is legal on a
+stateful group provided the replacement keeps the instance's name, which is
+what `replacement_method = "RECREATE"` does. The default, `SUBSTITUTE`, gives
+the replacement a new name and so cannot carry the stateful disk or the
+internal IP — that combination is what a stateful group rejects, not proactive
+updates as such. An apply that changes the startup script, the machine type or
+`k3s_version` therefore recreates the node without any further gesture. The
+boot disk and Prometheus's history survive it; expect a gap of a few minutes
+in every series.
 
 **No reserved IP.** Nothing dials in — see the firewall rule above — so the
 address may change freely whenever the instance is recreated. An in-use
