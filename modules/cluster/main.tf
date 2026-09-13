@@ -72,10 +72,11 @@ resource "google_compute_region_instance_group_manager" "demo" {
     delete_rule    = "NEVER"
   }
 
-  # A stateful MIG rejects PROACTIVE, so a template change rolls with update-instances.
+  # RECREATE keeps the instance name, which is what lets a stateful group roll itself.
   update_policy {
-    type                         = "OPPORTUNISTIC"
+    type                         = "PROACTIVE"
     minimal_action               = "REPLACE"
+    replacement_method           = "RECREATE"
     max_surge_fixed              = 0
     max_unavailable_fixed        = 3
     instance_redistribution_type = "NONE"
