@@ -98,22 +98,24 @@ cluster) rather than `flux bootstrap` (which would commit `flux-system/`
 manifests back to the repository, needing write access this node must never
 hold). It then applies a `GitRepository`/`Kustomization` pair — baked into
 the script from `var.git_repository_url` and `var.flux_semver` — that
-points Flux at `clusters/demo`, tracking a semver range rather than a
-branch. From there, Flux reconciles everything under `clusters/demo/`
-itself; this script never touches Prometheus or the workload directly. A
-copy of the same manifest lives at
-`clusters/demo/flux-system/gotk-sync.yaml` for reference — it isn't read by
-anything; the version this module actually applies is the one templated
-into the startup script.
+points Flux at `clusters/demo` on `var.flux_branch`. From there, Flux
+reconciles everything under `clusters/demo/` itself, including that
+`GitRepository` object — the copy at
+`clusters/demo/flux-system/gotk-sync.yaml` is the one Flux owns, so the
+branch the cluster follows can be changed by a commit rather than by
+rebuilding the node. The startup script only has to get the first one in
+place.
 
-**The semver range, not a pinned tag, is what makes an ordinary `main`
-merge unable to reach the running cluster.** Publishing a new version means
-pushing a tag that satisfies `var.flux_semver`, which is the same reviewed
-gesture as bumping this module's own `ref` in a caller — see the top of
-this file.
+**A merge to the branch reaches the cluster.** Review is the gate; there is
+no second one. That is deliberate for a demo, whose job is to show what
+`main` currently does — it is not the right shape for a cluster where a bad
+merge costs something.
 
-Set `var.git_repository_url` to a fork to run your own manifests; the fork
-needs tags matching `var.flux_semver` before anything reaches the cluster.
+This module is still consumed at a pinned `ref`, and that is unchanged: a
+caller applying it with privilege pins a tag or a SHA. Only the manifests
+Flux reconciles follow a branch.
+
+Set `var.git_repository_url` to a fork to run your own manifests.
 
 ## Not done here
 

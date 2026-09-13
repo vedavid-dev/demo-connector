@@ -41,7 +41,7 @@ fi
 /usr/local/bin/flux install \
   --components=source-controller,kustomize-controller,helm-controller,notification-controller
 
-# Applied every boot so a semver bump lands on the next reboot; Flux owns the rest.
+# Applied every boot; Flux owns this object thereafter, and the rest of the cluster.
 cat <<'GOTK_SYNC' | /usr/local/bin/k3s kubectl apply -f -
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
@@ -52,7 +52,7 @@ spec:
   interval: 1m
   url: ${git_repository_url}
   ref:
-    semver: "${flux_semver}"
+    branch: "${flux_branch}"
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
