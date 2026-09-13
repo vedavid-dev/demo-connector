@@ -90,6 +90,5 @@ policy deliberately keeps — delete it by hand when you are done.
 | `monitoring/` | Prometheus |
 | `workload/` | podinfo services and the load generator |
 
-Flux tracks tags, not branches, so a merge to `main` reaches no cluster until a
-version is tagged. Point `git_repository_url` at a fork to run your own
-manifests — the fork needs its own tags before anything is reconciled.
+Flux follows `main`, so a merge reaches the cluster on the next poll. Point
+`git_repository_url` at a fork to run your own manifests.

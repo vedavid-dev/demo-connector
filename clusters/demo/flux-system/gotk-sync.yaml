@@ -7,8 +7,7 @@ spec:
   interval: 1m
   url: https://github.com/vedavid-dev/demo-connector
   ref:
-    # Semver, so only a tag push reaches the cluster.
-    semver: ">=0.1.0 <1.0.0"
+    branch: main
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization

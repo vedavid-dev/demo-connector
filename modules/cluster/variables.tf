@@ -26,10 +26,10 @@ variable "git_repository_url" {
   default     = "https://github.com/vedavid-dev/demo-connector"
 }
 
-variable "flux_semver" {
-  description = "Flux GitRepository semver range. A branch is deliberately not an option here — only a tag push reaches the cluster"
+variable "flux_branch" {
+  description = "Branch Flux reconciles the cluster from; the node applies this once and Flux owns the object afterwards"
   type        = string
-  default     = ">=0.1.0 <1.0.0"
+  default     = "main"
 }
 
 variable "k3s_version" {
