@@ -10,7 +10,9 @@ fi
 
 # The version check just avoids invoking the installer on an ordinary reboot.
 if ! /usr/local/bin/k3s --version 2>/dev/null | head -1 | grep -qF "${k3s_version}"; then
-  curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION="${k3s_version}" sh -s - server \
+  # The installer that ships with the release being installed, not master's.
+  curl -sfL "https://raw.githubusercontent.com/k3s-io/k3s/${k3s_version}/install.sh" \
+    | INSTALL_K3S_VERSION="${k3s_version}" sh -s - server \
     --disable traefik \
     --disable servicelb \
     --write-kubeconfig-mode 0600
@@ -24,8 +26,15 @@ until /usr/local/bin/k3s kubectl get nodes --no-headers 2>/dev/null | awk '{prin
   sleep 5
 done
 
-if ! command -v flux >/dev/null 2>&1; then
-  curl -sfL https://fluxcd.io/install.sh | bash
+# The CLI version chooses the controller images, so it is pinned and verified.
+if ! /usr/local/bin/flux --version 2>/dev/null | grep -qF "${flux_version}"; then
+  tmp=$(mktemp -d)
+  curl -sfL -o "$tmp/flux.tar.gz" \
+    "https://github.com/fluxcd/flux2/releases/download/v${flux_version}/flux_${flux_version}_linux_amd64.tar.gz"
+  echo "${flux_sha256}  $tmp/flux.tar.gz" | sha256sum -c -
+  tar -xzf "$tmp/flux.tar.gz" -C "$tmp" flux
+  install -m 0755 "$tmp/flux" /usr/local/bin/flux
+  rm -rf "$tmp"
 fi
 
 # The node must never hold a repo write credential, which bootstrap would need.

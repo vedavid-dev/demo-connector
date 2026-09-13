@@ -37,3 +37,15 @@ variable "k3s_version" {
   type        = string
   default     = "v1.34.1+k3s1"
 }
+
+variable "flux_version" {
+  description = "Pinned Flux CLI release, which decides the controller images installed. Bumping it requires a matching flux_sha256"
+  type        = string
+  default     = "2.9.5"
+}
+
+variable "flux_sha256" {
+  description = "sha256 of flux_<flux_version>_linux_amd64.tar.gz, from that release's published checksums file"
+  type        = string
+  default     = "b853df82adfd7736f580692f9f734473d571606307139f8fd20c2a80dd1ff473"
+}
