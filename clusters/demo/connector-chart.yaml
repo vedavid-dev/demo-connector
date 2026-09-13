@@ -1,0 +1,11 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: connector
+  namespace: flux-system
+spec:
+  interval: 10m
+  url: https://github.com/vedavid-dev/connector
+  # Pinned exactly: a connector release reaches this cluster only once bumped here.
+  ref:
+    tag: v0.4.1
