@@ -1,4 +1,3 @@
-# No backend block: state is local by default. README.md covers moving it to GCS.
 terraform {
   required_version = ">= 1.8"
   required_providers {
