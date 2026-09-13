@@ -36,6 +36,8 @@ resource "google_compute_instance_template" "demo" {
       k3s_version        = var.k3s_version
       git_repository_url = var.git_repository_url
       flux_semver        = var.flux_semver
+      flux_version       = var.flux_version
+      flux_sha256        = var.flux_sha256
     })
   }
 
