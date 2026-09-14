@@ -18,11 +18,13 @@ resource "google_compute_instance_template" "demo" {
     }
   }
 
+  # Spot sets this itself, and leaving it unset makes every plan want it gone.
   scheduling {
-    provisioning_model  = "SPOT"
-    preemptible         = true
-    automatic_restart   = false
-    on_host_maintenance = "TERMINATE"
+    provisioning_model          = "SPOT"
+    preemptible                 = true
+    automatic_restart           = false
+    on_host_maintenance         = "TERMINATE"
+    instance_termination_action = "STOP"
   }
 
   service_account {
