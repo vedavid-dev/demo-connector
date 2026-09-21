@@ -15,7 +15,7 @@ if ! /usr/local/bin/k3s --version 2>/dev/null | head -1 | grep -qF "${k3s_versio
     | INSTALL_K3S_VERSION="${k3s_version}" sh -s - server \
     --disable traefik \
     --disable servicelb \
-    --write-kubeconfig-mode 0600
+    --write-kubeconfig-mode 0644
 fi
 systemctl enable --now k3s
 
@@ -25,6 +25,12 @@ echo "waiting for the node to report Ready"
 until /usr/local/bin/k3s kubectl get nodes --no-headers 2>/dev/null | awk '{print $2}' | grep -qx Ready; do
   sleep 5
 done
+
+# Every account here is an OS Login user with sudo, so the readable kubeconfig
+# widens nothing and lets kubectl, and its completion, run without sudo.
+cat > /etc/profile.d/k3s.sh <<'PROFILE'
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+PROFILE
 
 # The CLI version chooses the controller images, so it is pinned and verified.
 if ! /usr/local/bin/flux --version 2>/dev/null | grep -qF "${flux_version}"; then
@@ -73,6 +79,4 @@ apt-get update
 apt-get install -y --no-install-recommends unattended-upgrades bash-completion
 dpkg-reconfigure -f noninteractive unattended-upgrades
 
-# The kubeconfig is root-only, so kubectl is run through sudo; bash-completion
-# completes the command after sudo, so one file covers both.
 /usr/local/bin/k3s kubectl completion bash > /etc/bash_completion.d/kubectl
