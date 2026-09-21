@@ -26,11 +26,8 @@ until /usr/local/bin/k3s kubectl get nodes --no-headers 2>/dev/null | awk '{prin
   sleep 5
 done
 
-# Every account here is an OS Login user with sudo, so a readable kubeconfig
-# widens nothing and lets kubectl, and its completion, run without sudo. A
-# node installed with the old 0600 flag keeps it until k3s is reinstalled, so
-# the mode is also set directly.
-chmod 0644 /etc/rancher/k3s/k3s.yaml
+# Every account here is an OS Login user with sudo, so the readable kubeconfig
+# widens nothing and lets kubectl, and its completion, run without sudo.
 cat > /etc/profile.d/k3s.sh <<'PROFILE'
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 PROFILE
