@@ -70,5 +70,9 @@ GOTK_SYNC
 
 # The boot disk is long-lived, so nothing else refreshes the OS.
 apt-get update
-apt-get install -y --no-install-recommends unattended-upgrades
+apt-get install -y --no-install-recommends unattended-upgrades bash-completion
 dpkg-reconfigure -f noninteractive unattended-upgrades
+
+# The kubeconfig is root-only, so kubectl is run through sudo; bash-completion
+# completes the command after sudo, so one file covers both.
+/usr/local/bin/k3s kubectl completion bash > /etc/bash_completion.d/kubectl
