@@ -1,0 +1,60 @@
+version: 1
+id: service-latency
+title: Service latency
+sections:
+  - title: Latency
+    elements:
+      - type: stat
+        title: p95 latency
+        query: histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="workload", job="kubernetes-pods", path!="metrics"}[5m]))) * 1000
+        unit: milliseconds
+        thresholds:
+          direction: above
+          steps:
+            - { at: 500, level: warning }
+            - { at: 1000, level: critical }
+      - type: line
+        title: Latency quantiles
+        query: label_replace(histogram_quantile(0.5, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="workload", job="kubernetes-pods", path!="metrics"}[5m]))) * 1000, "quantile", "p50", "", "") or label_replace(histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="workload", job="kubernetes-pods", path!="metrics"}[5m]))) * 1000, "quantile", "p95", "", "") or label_replace(histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{namespace="workload", job="kubernetes-pods", path!="metrics"}[5m]))) * 1000, "quantile", "p99", "", "")
+        unit: milliseconds
+        series:
+          label: "{{quantile}}"
+      - type: line
+        title: p95 latency by service
+        query: histogram_quantile(0.95, sum by (app, le) (rate(http_request_duration_seconds_bucket{namespace="workload", job="kubernetes-pods", path!="metrics"}[5m]))) * 1000
+        unit: milliseconds
+        series:
+          label: "{{app}}"
+      - type: line
+        title: Requests slower than one second
+        query: 100 * (1 - sum(rate(http_request_duration_seconds_bucket{namespace="workload", job="kubernetes-pods", path!="metrics", le="1"}[5m])) / sum(rate(http_request_duration_seconds_count{namespace="workload", job="kubernetes-pods", path!="metrics"}[5m])))
+        unit: percent
+  - title: Traffic
+    elements:
+      - type: stat
+        title: Requests per second
+        query: sum(rate(http_requests_total{namespace="workload", job="kubernetes-pods", path!="metrics"}[5m]))
+        unit: requests_per_sec
+      - type: line
+        title: Requests per second by service
+        query: sum by (app) (rate(http_requests_total{namespace="workload", job="kubernetes-pods", path!="metrics"}[5m]))
+        unit: requests_per_sec
+        series:
+          label: "{{app}}"
+  - title: Errors
+    elements:
+      - type: stat
+        title: Error rate
+        query: 100 * sum(rate(http_requests_total{namespace="workload", job="kubernetes-pods", path!="metrics", status=~"5.."}[5m])) / sum(rate(http_requests_total{namespace="workload", job="kubernetes-pods", path!="metrics"}[5m]))
+        unit: percent
+        thresholds:
+          direction: above
+          steps:
+            - { at: 1, level: warning }
+            - { at: 5, level: critical }
+      - type: line
+        title: Errors per second by service
+        query: sum by (app) (rate(http_requests_total{namespace="workload", job="kubernetes-pods", path!="metrics", status=~"5.."}[5m]))
+        unit: requests_per_sec
+        series:
+          label: "{{app}}"

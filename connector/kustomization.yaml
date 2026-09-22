@@ -13,3 +13,4 @@ configMapGenerator:
     files:
       # Each dashboard is listed: kustomize does not expand globs here.
       - dashboards/cluster-overview.yaml
+      - dashboards/service-latency.yaml
