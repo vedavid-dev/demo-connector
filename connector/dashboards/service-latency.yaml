@@ -2,6 +2,21 @@ version: 1
 id: service-latency
 title: Service latency
 sections:
+  - title: Overview
+    elements:
+      - type: stat
+        title: Requests per second
+        query: sum(rate(http_requests_total{namespace="workload", job="kubernetes-pods", path!="metrics"}[5m]))
+        unit: requests_per_sec
+      - type: stat
+        title: Error rate
+        query: 100 * sum(rate(http_requests_total{namespace="workload", job="kubernetes-pods", path!="metrics", status=~"5.."}[5m])) / sum(rate(http_requests_total{namespace="workload", job="kubernetes-pods", path!="metrics"}[5m]))
+        unit: percent
+        thresholds:
+          direction: above
+          steps:
+            - { at: 1, level: warning }
+            - { at: 5, level: critical }
   - title: Latency
     elements:
       - type: stat
@@ -31,10 +46,6 @@ sections:
         unit: percent
   - title: Traffic
     elements:
-      - type: stat
-        title: Requests per second
-        query: sum(rate(http_requests_total{namespace="workload", job="kubernetes-pods", path!="metrics"}[5m]))
-        unit: requests_per_sec
       - type: line
         title: Requests per second by service
         query: sum by (app) (rate(http_requests_total{namespace="workload", job="kubernetes-pods", path!="metrics"}[5m]))
@@ -43,15 +54,6 @@ sections:
           label: "{{app}}"
   - title: Errors
     elements:
-      - type: stat
-        title: Error rate
-        query: 100 * sum(rate(http_requests_total{namespace="workload", job="kubernetes-pods", path!="metrics", status=~"5.."}[5m])) / sum(rate(http_requests_total{namespace="workload", job="kubernetes-pods", path!="metrics"}[5m]))
-        unit: percent
-        thresholds:
-          direction: above
-          steps:
-            - { at: 1, level: warning }
-            - { at: 5, level: critical }
       - type: line
         title: Errors per second by service
         query: sum by (app) (rate(http_requests_total{namespace="workload", job="kubernetes-pods", path!="metrics", status=~"5.."}[5m]))
