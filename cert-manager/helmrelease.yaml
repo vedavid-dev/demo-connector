@@ -1,0 +1,32 @@
+# Issues the workload's Postgres certificates; nothing here is exposed to the
+# internet, so there is no ACME issuer.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: cert-manager
+      version: "v1.21.2"
+      sourceRef:
+        kind: HelmRepository
+        name: jetstack
+        namespace: cert-manager
+  values:
+    crds:
+      enabled: true
+      keep: true
+    resources:
+      requests: { cpu: 10m, memory: 64Mi }
+      limits: { memory: 128Mi }
+    webhook:
+      resources:
+        requests: { cpu: 10m, memory: 32Mi }
+        limits: { memory: 64Mi }
+    cainjector:
+      resources:
+        requests: { cpu: 10m, memory: 64Mi }
+        limits: { memory: 128Mi }

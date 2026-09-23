@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quotationservice
+  namespace: workload
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quotationservice
+  template:
+    metadata:
+      labels:
+        app: quotationservice
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      containers:
+        - name: quotationservice
+          image: ghcr.io/caulagi/rust-k8s-demo/quotationservice:sha-d7775a3
+          ports:
+            - containerPort: 9001
+              name: grpc
+            - containerPort: 9090
+              name: metrics
+          env:
+            - name: POSTGRES_SERVICE
+              value: postgres
+            - name: POSTGRES_TLS_DIR
+              value: /etc/postgresql/tls/client
+            - name: REDIS_SERVICE
+              value: redis
+            - name: RUST_LOG
+              value: quotation_server=info
+          volumeMounts:
+            - name: client-tls
+              mountPath: /etc/postgresql/tls/client
+              readOnly: true
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { memory: 256Mi }
+      volumes:
+        - name: client-tls
+          secret:
+            secretName: postgres-client-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quotationservice
+  namespace: workload
+spec:
+  selector:
+    app: quotationservice
+  ports:
+    - port: 9001
+      targetPort: grpc
+      name: grpc
