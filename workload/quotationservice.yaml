@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: quotationservice
-          image: ghcr.io/caulagi/rust-k8s-demo/quotationservice:1.0.0
+          image: ghcr.io/caulagi/rust-k8s-demo/quotationservice:sha-d7775a3
           ports:
             - containerPort: 9001
               name: grpc
