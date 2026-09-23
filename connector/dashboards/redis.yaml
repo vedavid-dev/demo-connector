@@ -1,0 +1,113 @@
+version: 1
+id: redis
+title: Redis
+
+sections:
+  - title: Health
+    elements:
+      - type: stat
+        title: Cache hit rate
+        description: Lookups the quotation service answered from Redis rather than Postgres.
+        query: 100 * sum(rate(cache_requests_total{namespace="workload", job="kubernetes-pods", result="hit"}[5m])) / sum(rate(cache_requests_total{namespace="workload", job="kubernetes-pods"}[5m]))
+        unit: percent
+        decimals: 0
+        thresholds:
+          direction: below
+          steps:
+            - { at: 50, level: warning }
+
+      - type: stat
+        title: Memory vs limit
+        description: Container working set as a share of its memory limit. With no maxmemory set, Redis is OOM-killed at 100% rather than evicting.
+        query: >-
+          100 * sum(container_memory_working_set_bytes{namespace="workload", container="redis"})
+          / sum(kube_pod_container_resource_limits{namespace="workload", container="redis", resource="memory"})
+        unit: percent
+        decimals: 0
+        thresholds:
+          direction: above
+          steps:
+            - { at: 70, level: warning }
+            - { at: 90, level: critical }
+
+      - type: stat
+        title: Keys
+        query: sum(redis_db_keys{namespace="workload", job="kubernetes-pods"})
+        unit: count
+
+      - type: stat
+        title: Clients
+        query: sum(redis_connected_clients{namespace="workload", job="kubernetes-pods"})
+        unit: count
+
+      - type: stat
+        title: Blocked clients
+        description: Clients waiting in a blocking command. A cache workload should have none.
+        query: sum(redis_blocked_clients{namespace="workload", job="kubernetes-pods"})
+        unit: count
+        thresholds:
+          direction: above
+          steps:
+            - { at: 1, level: warning }
+
+      - type: stat
+        title: Rejected connections (1h)
+        description: Connections refused because maxclients was reached.
+        query: round(sum(increase(redis_rejected_connections_total{namespace="workload", job="kubernetes-pods"}[1h]))) or vector(0)
+        unit: count
+        thresholds:
+          direction: above
+          steps:
+            - { at: 1, level: critical }
+
+  - title: Activity
+    elements:
+      - type: line
+        title: Cache lookups by result
+        query: sum by (result) (rate(cache_requests_total{namespace="workload", job="kubernetes-pods"}[5m]))
+        unit: ops_per_sec
+        stack: true
+        series:
+          label: "{{result}}"
+
+      - type: line
+        title: Commands by type
+        query: sum by (cmd) (rate(redis_commands_total{namespace="workload", job="kubernetes-pods"}[5m]))
+        unit: ops_per_sec
+        stack: true
+        series:
+          label: "{{cmd}}"
+          top: 5
+          rank_by: mean
+
+      - type: line
+        title: p99 latency by command
+        description: Time Redis spends executing each command, excluding the network.
+        query: histogram_quantile(0.99, sum by (cmd, le) (rate(redis_commands_latencies_usec_bucket{namespace="workload", job="kubernetes-pods"}[5m]))) / 1000
+        unit: milliseconds
+        series:
+          label: "{{cmd}}"
+          top: 5
+          rank_by: max
+
+      - type: line
+        title: Memory
+        query: >-
+          label_replace(sum(redis_memory_used_bytes{namespace="workload", job="kubernetes-pods"}), "kind", "used", "", "")
+          or
+          label_replace(sum(container_memory_working_set_bytes{namespace="workload", container="redis"}), "kind", "container", "", "")
+          or
+          label_replace(sum(kube_pod_container_resource_limits{namespace="workload", container="redis", resource="memory"}), "kind", "limit", "", "")
+        unit: bytes
+        series:
+          label: "{{kind}}"
+
+      - type: line
+        title: Network traffic
+        query: >-
+          label_replace(sum(rate(redis_net_input_bytes_total{namespace="workload", job="kubernetes-pods"}[5m])), "direction", "in", "", "")
+          or
+          label_replace(sum(rate(redis_net_output_bytes_total{namespace="workload", job="kubernetes-pods"}[5m])), "direction", "out", "", "")
+        unit: bytes_per_sec
+        series:
+          label: "{{direction}}"

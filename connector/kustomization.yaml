@@ -12,6 +12,6 @@ configMapGenerator:
   - name: vedavid-dashboards
     files:
       - dashboards/cluster-overview.yaml
-      - dashboards/data-stores.yaml
       - dashboards/postgres.yaml
+      - dashboards/redis.yaml
       - dashboards/service-latency.yaml
