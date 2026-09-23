@@ -72,7 +72,8 @@ sections:
 
       - type: line
         title: Commands by type
-        query: sum by (cmd) (rate(redis_commands_total{namespace="workload", job="kubernetes-pods"}[5m]))
+        description: Excludes the introspection commands redis_exporter runs on every scrape.
+        query: sum by (cmd) (rate(redis_commands_total{namespace="workload", job="kubernetes-pods", cmd!~"(info|config|client|latency|slowlog|command)([|].*)?"}[5m]))
         unit: ops_per_sec
         stack: true
         series:
@@ -82,8 +83,8 @@ sections:
 
       - type: line
         title: p99 latency by command
-        description: Time Redis spends executing each command, excluding the network.
-        query: histogram_quantile(0.99, sum by (cmd, le) (rate(redis_commands_latencies_usec_bucket{namespace="workload", job="kubernetes-pods"}[5m]))) / 1000
+        description: Time Redis spends executing each command, excluding the network and the exporter's own commands.
+        query: histogram_quantile(0.99, sum by (cmd, le) (rate(redis_commands_latencies_usec_bucket{namespace="workload", job="kubernetes-pods", cmd!~"(info|config|client|latency|slowlog|command)([|].*)?"}[5m]))) / 1000
         unit: milliseconds
         series:
           label: "{{cmd}}"

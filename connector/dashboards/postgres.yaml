@@ -129,10 +129,10 @@ sections:
         sparkline: true
 
       - type: list
-        title: Sequential scans by table
-        description: Full table scans per second. High rates on large tables suggest a missing index.
-        query: topk(10, rate(pg_stat_user_tables_seq_scan{namespace="workload", job="kubernetes-pods"}[5m]) > 0)
-        unit: ops_per_sec
+        title: Sequential scans (1h)
+        description: Full table scans in the last hour. A high count on a large table suggests a missing index.
+        query: topk(10, round(increase(pg_stat_user_tables_seq_scan{namespace="workload", job="kubernetes-pods"}[1h])) > 0)
+        unit: count
         label: "{{schemaname}}.{{relname}}"
         limit: 10
         sparkline: true
