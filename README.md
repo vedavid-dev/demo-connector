@@ -17,6 +17,7 @@ anyone: clone it, name a project, apply.
   an HTTP frontend, a gRPC quotation service, Postgres and a Redis cache, all
   exporting metrics, driven by a load generator that varies traffic on a
   ~5 minute cycle.
+- cert-manager, issuing the certificates Postgres authenticates its clients with.
 - The connector, dialling out to the relay. Nothing listens on the internet.
 
 ## Prerequisites
@@ -90,6 +91,7 @@ policy deliberately keeps — delete it by hand when you are done.
 | `clusters/demo/` | what Flux reconciles, and where it reads it from |
 | `connector/` | the connector's HelmRelease and its dashboards |
 | `monitoring/` | Prometheus |
+| `cert-manager/` | cert-manager, for the workload's Postgres certificates |
 | `workload/` | the rust-k8s-demo services, their data stores and the load generator |
 
 Flux follows `main`, so a merge reaches the cluster on the next poll. Point

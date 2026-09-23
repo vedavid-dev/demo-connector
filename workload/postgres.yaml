@@ -1,6 +1,5 @@
-# The database holds public-domain quotations and is reachable only from
-# inside this cluster, so it runs with no password rather than with one that
-# would have to sit in this public repository.
+# The database takes no password: clients present a certificate from the CA
+# in postgres-tls.yaml. The image carries the rules that enforce it.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,15 +20,20 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9187"
     spec:
+      # Postgres and libpq accept a private key owned by root only when its
+      # group may read it and nobody else; the group is postgres's.
+      securityContext:
+        fsGroup: 999
       containers:
         - name: postgres
           image: ghcr.io/caulagi/rust-k8s-demo/databaseservice:1.0.0
           ports:
             - containerPort: 5432
               name: postgres
-          env:
-            - name: POSTGRES_HOST_AUTH_METHOD
-              value: trust
+          volumeMounts:
+            - name: server-tls
+              mountPath: /etc/postgresql/tls/server
+              readOnly: true
           # Seeding the quotations on first start takes a while.
           startupProbe:
             tcpSocket:
@@ -46,12 +50,25 @@ spec:
               name: metrics
           env:
             - name: DATA_SOURCE_URI
-              value: localhost:5432/postgres?sslmode=disable
+              value: localhost:5432/postgres?sslmode=verify-full&sslrootcert=/etc/postgresql/tls/client/ca.crt&sslcert=/etc/postgresql/tls/client/tls.crt&sslkey=/etc/postgresql/tls/client/tls.key
             - name: DATA_SOURCE_USER
               value: postgres
+          volumeMounts:
+            - name: client-tls
+              mountPath: /etc/postgresql/tls/client
+              readOnly: true
           resources:
             requests: { cpu: 20m, memory: 32Mi }
             limits: { memory: 64Mi }
+      volumes:
+        - name: server-tls
+          secret:
+            secretName: postgres-server-tls
+            defaultMode: 0640
+        - name: client-tls
+          secret:
+            secretName: postgres-client-tls
+            defaultMode: 0640
 ---
 apiVersion: v1
 kind: Service

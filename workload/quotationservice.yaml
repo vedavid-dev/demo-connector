@@ -27,16 +27,23 @@ spec:
           env:
             - name: POSTGRES_SERVICE
               value: postgres
-            # Required by the service, ignored by a database that trusts every client.
-            - name: POSTGRES_PASSWORD
-              value: unused
+            - name: POSTGRES_TLS_DIR
+              value: /etc/postgresql/tls/client
             - name: REDIS_SERVICE
               value: redis
             - name: RUST_LOG
               value: quotation_server=info
+          volumeMounts:
+            - name: client-tls
+              mountPath: /etc/postgresql/tls/client
+              readOnly: true
           resources:
             requests: { cpu: 50m, memory: 64Mi }
             limits: { memory: 256Mi }
+      volumes:
+        - name: client-tls
+          secret:
+            secretName: postgres-client-tls
 ---
 apiVersion: v1
 kind: Service
