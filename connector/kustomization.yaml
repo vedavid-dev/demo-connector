@@ -11,7 +11,7 @@ generatorOptions:
 configMapGenerator:
   - name: vedavid-dashboards
     files:
-      # Each dashboard is listed: kustomize does not expand globs here.
       - dashboards/cluster-overview.yaml
       - dashboards/data-stores.yaml
+      - dashboards/postgres.yaml
       - dashboards/service-latency.yaml
