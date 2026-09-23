@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: frontendservice
-          image: ghcr.io/caulagi/rust-k8s-demo/frontendservice:sha-d7775a3
+          image: ghcr.io/caulagi/rust-k8s-demo/frontendservice:sha-ca68573
           ports:
             - containerPort: 8080
               name: http

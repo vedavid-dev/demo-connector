@@ -26,7 +26,7 @@ spec:
         fsGroup: 999
       containers:
         - name: postgres
-          image: ghcr.io/caulagi/rust-k8s-demo/databaseservice:sha-d7775a3
+          image: ghcr.io/caulagi/rust-k8s-demo/databaseservice:sha-ca68573
           ports:
             - containerPort: 5432
               name: postgres
