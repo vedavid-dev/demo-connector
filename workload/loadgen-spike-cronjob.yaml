@@ -23,10 +23,8 @@ spec:
                   set -eu
                   end=$(($(date +%s) + 60))
                   while [ "$(date +%s)" -lt "$end" ]; do
-                    for name in checkout catalog payments frontend; do
-                      for _ in 1 2 3 4 5; do
-                        curl -s -o /dev/null -m 3 "http://$name.workload.svc.cluster.local:9898/" &
-                      done
+                    for _ in $(seq 1 60); do
+                      curl -s -o /dev/null -m 3 "http://frontendservice.workload.svc.cluster.local/" &
                     done
                     wait
                   done

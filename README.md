@@ -13,8 +13,10 @@ anyone: clone it, name a project, apply.
 - A Spot `e2-medium` with a stateful boot disk, so Prometheus keeps its
   history across preemptions.
 - k3s, with Flux reconciling everything else from this repository.
-- Prometheus, scraping four podinfo services driven by a load generator that
-  varies traffic on a ~5 minute cycle and injects slow requests and errors.
+- Prometheus, scraping [rust-k8s-demo](https://github.com/caulagi/rust-k8s-demo):
+  an HTTP frontend, a gRPC quotation service, Postgres and a Redis cache, all
+  exporting metrics, driven by a load generator that varies traffic on a
+  ~5 minute cycle.
 - The connector, dialling out to the relay. Nothing listens on the internet.
 
 ## Prerequisites
@@ -88,7 +90,7 @@ policy deliberately keeps — delete it by hand when you are done.
 | `clusters/demo/` | what Flux reconciles, and where it reads it from |
 | `connector/` | the connector's HelmRelease and its dashboards |
 | `monitoring/` | Prometheus |
-| `workload/` | podinfo services and the load generator |
+| `workload/` | the rust-k8s-demo services, their data stores and the load generator |
 
 Flux follows `main`, so a merge reaches the cluster on the next poll. Point
 `git_repository_url` at a fork to run your own manifests.

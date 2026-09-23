@@ -1,0 +1,67 @@
+# The database holds public-domain quotations and is reachable only from
+# inside this cluster, so it runs with no password rather than with one that
+# would have to sit in this public repository.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: workload
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9187"
+    spec:
+      containers:
+        - name: postgres
+          image: ghcr.io/caulagi/rust-k8s-demo/databaseservice:1.0.0
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: trust
+          # Seeding the quotations on first start takes a while.
+          startupProbe:
+            tcpSocket:
+              port: 5432
+            failureThreshold: 60
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { memory: 384Mi }
+        - name: postgres-exporter
+          image: quay.io/prometheuscommunity/postgres-exporter:v0.20.1
+          ports:
+            - containerPort: 9187
+              name: metrics
+          env:
+            - name: DATA_SOURCE_URI
+              value: localhost:5432/postgres?sslmode=disable
+            - name: DATA_SOURCE_USER
+              value: postgres
+          resources:
+            requests: { cpu: 20m, memory: 32Mi }
+            limits: { memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: workload
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: postgres
+      name: postgres

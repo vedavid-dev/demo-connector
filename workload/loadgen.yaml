@@ -9,41 +9,22 @@ data:
     #!/bin/sh
     set -eu
 
-    services="checkout:5 catalog:8 payments:3 frontend:12"
+    url="http://frontendservice.workload.svc.cluster.local/"
 
     hit() {
       # Best-effort: a slow or erroring backend must not stall the loop.
       curl -s -o /dev/null -m 3 "$1" || true
     }
 
-    i=0
     while true; do
-      i=$((i + 1))
       now=$(date +%s)
-      mult=$(awk -v t="$now" 'BEGIN { printf "%.3f", 1 + 0.5 * sin(t / 300) }')
-
-      for entry in $services; do
-        name=${entry%%:*}
-        base=${entry#*:}
-        count=$(awk -v b="$base" -v m="$mult" 'BEGIN { c = b * m; printf "%d", (c < 1 ? 1 : c) }')
-        n=0
-        while [ "$n" -lt "$count" ]; do
-          hit "http://$name.workload.svc.cluster.local:9898/" &
-          n=$((n + 1))
-        done
+      # Between 10 and 30 requests a second over the cycle.
+      count=$(awk -v t="$now" 'BEGIN { printf "%d", 20 * (1 + 0.5 * sin(t / 300)) }')
+      n=0
+      while [ "$n" -lt "$count" ]; do
+        hit "$url" &
+        n=$((n + 1))
       done
-
-      # Every 20s, per service: one slow request and one 500, which is about
-      # 1-2% of traffic in this window. Never /panic: it terminates podinfo
-      # rather than returning an error.
-      if [ $((i % 20)) -eq 0 ]; then
-        for entry in $services; do
-          name=${entry%%:*}
-          hit "http://$name.workload.svc.cluster.local:9898/delay/2"
-          hit "http://$name.workload.svc.cluster.local:9898/status/500"
-        done
-      fi
-
       wait
       sleep 1
     done

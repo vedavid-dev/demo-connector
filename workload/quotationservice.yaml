@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quotationservice
+  namespace: workload
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quotationservice
+  template:
+    metadata:
+      labels:
+        app: quotationservice
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      containers:
+        - name: quotationservice
+          image: ghcr.io/caulagi/rust-k8s-demo/quotationservice:1.0.0
+          ports:
+            - containerPort: 9001
+              name: grpc
+            - containerPort: 9090
+              name: metrics
+          env:
+            - name: POSTGRES_SERVICE
+              value: postgres
+            # Required by the service, ignored by a database that trusts every client.
+            - name: POSTGRES_PASSWORD
+              value: unused
+            - name: REDIS_SERVICE
+              value: redis
+            - name: RUST_LOG
+              value: quotation_server=info
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quotationservice
+  namespace: workload
+spec:
+  selector:
+    app: quotationservice
+  ports:
+    - port: 9001
+      targetPort: grpc
+      name: grpc
