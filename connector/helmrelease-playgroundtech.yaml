@@ -23,4 +23,7 @@ spec:
       url: http://prometheus-server.monitoring.svc.cluster.local
     dashboards:
       sources:
-        - configMap: vedavid-dashboards
+        - configMap: vedavid-dashboards-k8s
+        - configMap: vedavid-dashboards-postgres
+        - configMap: vedavid-dashboards-redis
+        - configMap: vedavid-dashboards-rust-k8s-demo
