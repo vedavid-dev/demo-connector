@@ -94,8 +94,10 @@ policy deliberately keeps — delete it by hand when you are done.
 | --- | --- |
 | `modules/cluster/` | the GCE footprint; usable on its own from another root |
 | `clusters/demo/` | what Flux reconciles, and where it reads it from |
-| `connector/` | one HelmRelease per organisation's connector, and the dashboards they share |
+| `connector/` | one HelmRelease per organisation's connector |
+| `namespaces/` | the namespace the connectors and dashboards share |
 | `monitoring/` | Prometheus |
+| `clusters/demo/dashboards.yaml` | which directories of [vedavid-dev/dashboards](https://github.com/vedavid-dev/dashboards) this cluster takes, following its releases |
 | `cert-manager/` | cert-manager, for the workload's Postgres certificates |
 | `workload/` | the rust-k8s-demo services, their data stores and the load generator |
 

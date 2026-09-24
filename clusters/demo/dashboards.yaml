@@ -1,0 +1,80 @@
+# The dashboards are released from their own repository, one directory per
+# subject; each tag rolls out here on the next poll.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: dashboards
+  namespace: flux-system
+spec:
+  interval: 10m
+  url: https://github.com/vedavid-dev/dashboards
+  ref:
+    semver: ">=0.1.0"
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: dashboards-k8s
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./k8s
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: dashboards
+  dependsOn:
+    - name: namespaces
+  wait: true
+  timeout: 5m
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: dashboards-postgres
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./postgres
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: dashboards
+  dependsOn:
+    - name: namespaces
+  wait: true
+  timeout: 5m
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: dashboards-redis
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./redis
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: dashboards
+  dependsOn:
+    - name: namespaces
+  wait: true
+  timeout: 5m
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: dashboards-rust-k8s-demo
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./rust-k8s-demo
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: dashboards
+  dependsOn:
+    - name: namespaces
+  wait: true
+  timeout: 5m

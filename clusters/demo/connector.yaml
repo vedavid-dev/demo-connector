@@ -10,5 +10,12 @@ spec:
   sourceRef:
     kind: GitRepository
     name: vedavid-demo
+  # The chart mounts the dashboards ConfigMap; the pods wait for it otherwise.
+  dependsOn:
+    - name: namespaces
+    - name: dashboards-k8s
+    - name: dashboards-postgres
+    - name: dashboards-redis
+    - name: dashboards-rust-k8s-demo
   wait: true
   timeout: 5m

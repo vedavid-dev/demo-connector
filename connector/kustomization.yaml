@@ -1,18 +1,5 @@
 namespace: vedavid
 
 resources:
-  - namespace.yaml
   - helmrelease.yaml
   - helmrelease-playgroundtech.yaml
-
-# A hashed name would not match what the chart mounts.
-generatorOptions:
-  disableNameSuffixHash: true
-
-configMapGenerator:
-  - name: vedavid-dashboards
-    files:
-      - dashboards/cluster-overview.yaml
-      - dashboards/postgres.yaml
-      - dashboards/redis.yaml
-      - dashboards/service-latency.yaml
