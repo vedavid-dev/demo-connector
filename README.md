@@ -61,6 +61,11 @@ kubectl --namespace vedavid create secret generic vedavid-enrolment-token \
   --from-file=token=./enrolment-token.txt
 ```
 
+The cluster runs two connectors, one per organisation: the demo organisation
+and playgroundtech.io. The second reads its token from
+`vedavid-enrolment-token-playgroundtech`, created the same way with a token
+enrolled while signed in to that organisation.
+
 The `vedavid` namespace is created by Flux, so wait for the first reconcile.
 
 ## Reaching the cluster
@@ -89,7 +94,7 @@ policy deliberately keeps — delete it by hand when you are done.
 | --- | --- |
 | `modules/cluster/` | the GCE footprint; usable on its own from another root |
 | `clusters/demo/` | what Flux reconciles, and where it reads it from |
-| `connector/` | the connector's HelmRelease and its dashboards |
+| `connector/` | one HelmRelease per organisation's connector, and the dashboards they share |
 | `monitoring/` | Prometheus |
 | `cert-manager/` | cert-manager, for the workload's Postgres certificates |
 | `workload/` | the rust-k8s-demo services, their data stores and the load generator |
