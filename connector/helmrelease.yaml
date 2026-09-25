@@ -16,7 +16,7 @@ spec:
     spec:
       chart: vedavid-connector
       # The chart's appVersion picks the image, and a tag stamps both. One line.
-      version: "0.5.1"
+      version: "0.5.2"
       sourceRef:
         kind: HelmRepository
         name: connector
