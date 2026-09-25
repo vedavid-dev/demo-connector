@@ -6,7 +6,7 @@ metadata:
   name: dashboards
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 1m
   url: https://github.com/vedavid-dev/dashboards
   ref:
     semver: ">=0.1.0"
@@ -17,7 +17,7 @@ metadata:
   name: dashboards-k8s
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 1m
   path: ./k8s
   prune: true
   sourceRef:
@@ -34,7 +34,7 @@ metadata:
   name: dashboards-postgres
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 1m
   path: ./postgres
   prune: true
   sourceRef:
@@ -51,7 +51,7 @@ metadata:
   name: dashboards-redis
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 1m
   path: ./redis
   prune: true
   sourceRef:
@@ -68,7 +68,7 @@ metadata:
   name: dashboards-rust-k8s-demo
   namespace: flux-system
 spec:
-  interval: 10m
+  interval: 1m
   path: ./rust-k8s-demo
   prune: true
   sourceRef:
