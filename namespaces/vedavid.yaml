@@ -1,4 +1,8 @@
+# The enrolment token secrets are created by hand in here, so no Kustomization
+# may ever garbage-collect the namespace.
 apiVersion: v1
 kind: Namespace
 metadata:
   name: vedavid
+  annotations:
+    kustomize.toolkit.fluxcd.io/prune: disabled
