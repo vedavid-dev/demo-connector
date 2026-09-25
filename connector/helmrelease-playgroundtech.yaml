@@ -7,6 +7,13 @@ metadata:
   namespace: vedavid
 spec:
   interval: 15m
+  # The token secret arrives by hand, so the first install may find it missing.
+  install:
+    remediation:
+      retries: -1
+  upgrade:
+    remediation:
+      retries: 3
   chart:
     spec:
       chart: vedavid-connector
