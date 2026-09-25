@@ -28,6 +28,7 @@ spec:
                     done
                     wait
                   done
+              # Sixty curls run at once, each a few megabytes.
               resources:
-                requests: { cpu: 20m, memory: 16Mi }
-                limits: { memory: 32Mi }
+                requests: { cpu: 20m, memory: 128Mi }
+                limits: { memory: 384Mi }

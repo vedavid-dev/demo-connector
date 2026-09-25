@@ -48,9 +48,10 @@ spec:
         - name: loadgen
           image: curlimages/curl:8.10.1
           command: ["/bin/sh", "/scripts/loadgen.sh"]
+          # Up to thirty curls run at once, each a few megabytes.
           resources:
-            requests: { cpu: 20m, memory: 16Mi }
-            limits: { memory: 32Mi }
+            requests: { cpu: 20m, memory: 64Mi }
+            limits: { memory: 192Mi }
           volumeMounts:
             - name: script
               mountPath: /scripts
