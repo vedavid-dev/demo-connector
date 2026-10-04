@@ -17,6 +17,11 @@ anyone: clone it, name a project, apply.
   an HTTP frontend, a gRPC quotation service, Postgres and a Redis cache, all
   exporting metrics, driven by a load generator that varies traffic on a
   ~5 minute cycle.
+- Three more teams' namespaces, so questions by service and by namespace have
+  several answers: `payments` and `catalog` each run an HTTP service on its
+  own traffic cycle, `catalog` a Redis cache that is read and written every
+  minute, and `billing` a Postgres that a cron job posts a ledger to every
+  five minutes.
 - cert-manager, issuing the certificates Postgres authenticates its clients with.
 - The connector, dialling out to the relay. Nothing listens on the internet.
 
@@ -100,6 +105,7 @@ policy deliberately keeps — delete it by hand when you are done.
 | `clusters/demo/dashboards.yaml` | which directories of [vedavid-dev/dashboards](https://github.com/vedavid-dev/dashboards) this cluster takes, following its releases |
 | `cert-manager/` | cert-manager, for the workload's Postgres certificates |
 | `workload/` | the rust-k8s-demo services, their data stores and the load generator |
+| `apps/` | the other teams' namespaces: `payments`, `catalog` and `billing`, each with its service, store and load |
 
 Flux follows `main`, so a merge reaches the cluster on the next poll. Point
 `git_repository_url` at a fork to run your own manifests.

@@ -1,0 +1,81 @@
+# Requests to the service, and a cache that is actually used: a burst of
+# reads and writes against Redis every minute, more than its memory cap
+# holds, so hit rate, evictions and memory all move.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loadgen-script
+  namespace: catalog
+data:
+  loadgen.sh: |
+    #!/bin/sh
+    set -eu
+
+    url="http://catalogservice.catalog.svc.cluster.local/"
+
+    hit() {
+      curl -s -o /dev/null -m 3 "$1" || true
+    }
+
+    while true; do
+      now=$(date +%s)
+      # Between 4 and 12 requests a second over a ~8 minute cycle.
+      count=$(awk -v t="$now" 'BEGIN { printf "%d", 8 * (1 + 0.5 * sin(t / 480)) }')
+      n=0
+      while [ "$n" -lt "$count" ]; do
+        hit "$url" &
+        n=$((n + 1))
+      done
+      wait
+      sleep 1
+    done
+  cache.sh: |
+    #!/bin/sh
+    set -eu
+
+    host="redis.catalog.svc.cluster.local"
+
+    while true; do
+      redis-benchmark -h "$host" -q -n 3000 -c 4 -r 20000 -d 512 -t set,get >/dev/null 2>&1 || true
+      sleep 60
+    done
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadgen
+  namespace: catalog
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loadgen
+  template:
+    metadata:
+      labels:
+        app: loadgen
+    spec:
+      containers:
+        - name: loadgen
+          image: curlimages/curl:8.10.1
+          command: ["/bin/sh", "/scripts/loadgen.sh"]
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits: { memory: 96Mi }
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+        - name: cache
+          image: redis:7-bookworm
+          command: ["/bin/sh", "/scripts/cache.sh"]
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { memory: 64Mi }
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+      volumes:
+        - name: script
+          configMap:
+            name: loadgen-script
+            defaultMode: 0555

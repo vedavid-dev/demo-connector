@@ -1,0 +1,61 @@
+# Steady, lighter traffic than the main workload, on a longer cycle, so the
+# two services never move in step.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loadgen-script
+  namespace: payments
+data:
+  loadgen.sh: |
+    #!/bin/sh
+    set -eu
+
+    url="http://paymentservice.payments.svc.cluster.local/"
+
+    hit() {
+      curl -s -o /dev/null -m 3 "$1" || true
+    }
+
+    while true; do
+      now=$(date +%s)
+      # Between 3 and 9 requests a second over a ~12 minute cycle.
+      count=$(awk -v t="$now" 'BEGIN { printf "%d", 6 * (1 + 0.5 * sin(t / 720)) }')
+      n=0
+      while [ "$n" -lt "$count" ]; do
+        hit "$url" &
+        n=$((n + 1))
+      done
+      wait
+      sleep 1
+    done
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadgen
+  namespace: payments
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loadgen
+  template:
+    metadata:
+      labels:
+        app: loadgen
+    spec:
+      containers:
+        - name: loadgen
+          image: curlimages/curl:8.10.1
+          command: ["/bin/sh", "/scripts/loadgen.sh"]
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits: { memory: 96Mi }
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+      volumes:
+        - name: script
+          configMap:
+            name: loadgen-script
+            defaultMode: 0555
