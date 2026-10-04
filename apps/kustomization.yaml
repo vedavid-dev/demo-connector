@@ -1,16 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - payments/namespace.yaml
-  - payments/paymentservice.yaml
-  - payments/loadgen.yaml
-  - catalog/namespace.yaml
-  - catalog/catalogservice.yaml
-  - catalog/redis.yaml
-  - catalog/loadgen.yaml
-  - billing/namespace.yaml
-  - billing/postgres.yaml
-  - billing/ledger-cronjob.yaml
   - emojivoto/namespace.yaml
   - emojivoto/services.yaml
   - emojivoto/vote-bot.yaml

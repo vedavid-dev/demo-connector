@@ -10,8 +10,5 @@ spec:
   sourceRef:
     kind: GitRepository
     name: vedavid-demo
-  # The new frontends call the quotation service in the workload namespace.
-  dependsOn:
-    - name: workload
   wait: true
   timeout: 5m
