@@ -26,6 +26,10 @@ anyone: clone it, name a project, apply.
   export their request metrics and whose vote bot keeps voting for the one
   emoji the voting service refuses, so a steady error rate is always there to
   find.
+- A `shop` of three [podinfo](https://github.com/stefanprodan/podinfo)
+  instances calling each other, the last with a small random delay. Each
+  exports its HTTP metrics, and any of them takes `--random-error` to become
+  the service that is failing.
 - cert-manager, issuing the certificates Postgres authenticates its clients with.
 - The connector, dialling out to the relay. Nothing listens on the internet.
 
@@ -109,7 +113,7 @@ policy deliberately keeps — delete it by hand when you are done.
 | `clusters/demo/dashboards.yaml` | which directories of [vedavid-dev/dashboards](https://github.com/vedavid-dev/dashboards) this cluster takes, following its releases |
 | `cert-manager/` | cert-manager, for the workload's Postgres certificates |
 | `workload/` | the rust-k8s-demo services, their data stores and the load generator |
-| `apps/` | the other teams' namespaces: `payments`, `catalog` and `billing`, each with its service, store and load, and `emojivoto` |
+| `apps/` | the other teams' namespaces: `payments`, `catalog` and `billing`, each with its service, store and load, `emojivoto`, and the `shop` chain of podinfo instances |
 
 Flux follows `main`, so a merge reaches the cluster on the next poll. Point
 `git_repository_url` at a fork to run your own manifests.

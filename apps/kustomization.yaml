@@ -14,3 +14,6 @@ resources:
   - emojivoto/namespace.yaml
   - emojivoto/services.yaml
   - emojivoto/vote-bot.yaml
+  - shop/namespace.yaml
+  - shop/podinfo.yaml
+  - shop/loadgen.yaml
