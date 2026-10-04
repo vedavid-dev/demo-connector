@@ -1,0 +1,154 @@
+# Three podinfo instances calling each other: storefront asks pricing, pricing
+# asks inventory, and inventory answers with a small random delay, so the
+# chain has a latency shape. Each exports http_requests_total and a duration
+# histogram on its own port. Give any one of them --random-error to make it
+# the service that is failing.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storefront
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: storefront
+  template:
+    metadata:
+      labels:
+        app: storefront
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9898"
+    spec:
+      containers:
+        - name: podinfo
+          image: ghcr.io/stefanprodan/podinfo:6.15.0
+          args:
+            - --port=9898
+            - --level=info
+            - --backend-url=http://pricing.shop.svc.cluster.local:9898/api/echo
+          ports:
+            - containerPort: 9898
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: storefront
+  namespace: shop
+spec:
+  selector:
+    app: storefront
+  ports:
+    - port: 9898
+      targetPort: http
+      name: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pricing
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pricing
+  template:
+    metadata:
+      labels:
+        app: pricing
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9898"
+    spec:
+      containers:
+        - name: podinfo
+          image: ghcr.io/stefanprodan/podinfo:6.15.0
+          args:
+            - --port=9898
+            - --level=info
+            - --backend-url=http://inventory.shop.svc.cluster.local:9898/api/echo
+          ports:
+            - containerPort: 9898
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pricing
+  namespace: shop
+spec:
+  selector:
+    app: pricing
+  ports:
+    - port: 9898
+      targetPort: http
+      name: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory
+  namespace: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory
+  template:
+    metadata:
+      labels:
+        app: inventory
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9898"
+    spec:
+      containers:
+        - name: podinfo
+          image: ghcr.io/stefanprodan/podinfo:6.15.0
+          args:
+            - --port=9898
+            - --level=info
+            - --random-delay
+            - --random-delay-unit=ms
+            - --random-delay-min=20
+            - --random-delay-max=200
+          ports:
+            - containerPort: 9898
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory
+  namespace: shop
+spec:
+  selector:
+    app: inventory
+  ports:
+    - port: 9898
+      targetPort: http
+      name: http

@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - emojivoto/namespace.yaml
+  - emojivoto/services.yaml
+  - emojivoto/vote-bot.yaml
+  - shop/namespace.yaml
+  - shop/podinfo.yaml
+  - shop/loadgen.yaml

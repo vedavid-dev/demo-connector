@@ -1,0 +1,146 @@
+# Linkerd's emojivoto: a web front, and two gRPC services behind it that
+# export go-grpc-prometheus metrics. The voting service refuses the doughnut,
+# and the bot keeps voting for it, so one service always carries a steady
+# error rate without anything being broken on purpose.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emoji
+  namespace: emojivoto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: emoji-svc
+  template:
+    metadata:
+      labels:
+        app: emoji-svc
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8801"
+    spec:
+      containers:
+        - name: emoji-svc
+          image: ghcr.io/buoyantio/emojivoto-emoji-svc:v11
+          env:
+            - name: GRPC_PORT
+              value: "8080"
+            - name: PROM_PORT
+              value: "8801"
+          ports:
+            - containerPort: 8080
+              name: grpc
+            - containerPort: 8801
+              name: metrics
+          resources:
+            requests: { cpu: 20m, memory: 24Mi }
+            limits: { memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: emoji-svc
+  namespace: emojivoto
+spec:
+  selector:
+    app: emoji-svc
+  ports:
+    - port: 8080
+      targetPort: grpc
+      name: grpc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voting
+  namespace: emojivoto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: voting-svc
+  template:
+    metadata:
+      labels:
+        app: voting-svc
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8801"
+    spec:
+      containers:
+        - name: voting-svc
+          image: ghcr.io/buoyantio/emojivoto-voting-svc:v11
+          env:
+            - name: GRPC_PORT
+              value: "8080"
+            - name: PROM_PORT
+              value: "8801"
+          ports:
+            - containerPort: 8080
+              name: grpc
+            - containerPort: 8801
+              name: metrics
+          resources:
+            requests: { cpu: 20m, memory: 24Mi }
+            limits: { memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: voting-svc
+  namespace: emojivoto
+spec:
+  selector:
+    app: voting-svc
+  ports:
+    - port: 8080
+      targetPort: grpc
+      name: grpc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: emojivoto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-svc
+  template:
+    metadata:
+      labels:
+        app: web-svc
+    spec:
+      containers:
+        - name: web-svc
+          image: ghcr.io/buoyantio/emojivoto-web:v11
+          env:
+            - name: WEB_PORT
+              value: "8080"
+            - name: EMOJISVC_HOST
+              value: emoji-svc.emojivoto:8080
+            - name: VOTINGSVC_HOST
+              value: voting-svc.emojivoto:8080
+            - name: INDEX_BUNDLE
+              value: dist/index_bundle.js
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests: { cpu: 20m, memory: 24Mi }
+            limits: { memory: 64Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-svc
+  namespace: emojivoto
+spec:
+  selector:
+    app: web-svc
+  ports:
+    - port: 80
+      targetPort: http
+      name: http
