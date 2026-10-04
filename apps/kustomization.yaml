@@ -11,3 +11,6 @@ resources:
   - billing/namespace.yaml
   - billing/postgres.yaml
   - billing/ledger-cronjob.yaml
+  - emojivoto/namespace.yaml
+  - emojivoto/services.yaml
+  - emojivoto/vote-bot.yaml
